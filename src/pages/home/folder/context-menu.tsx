@@ -6,7 +6,7 @@ import { operations } from "../toolbar/operations"
 import { For, Show } from "solid-js"
 import { bus, convertURL, notify } from "~/utils"
 import { ObjType, UserMethods, UserPermissions } from "~/types"
-import { getSettingBool, haveSelected, me, oneChecked } from "~/store"
+import { getSettingBool, haveSelected, me, oneChecked, local } from "~/store"
 import { players } from "../previews/video_box"
 import { BsPlayCircleFill } from "solid-icons/bs"
 
@@ -35,12 +35,44 @@ export const ContextMenu = () => {
     return UserMethods.is_admin(me()) || getSettingBool("package_download")
   }
   const { rawLink } = useLink()
+
+  const myPlayers = players.filter((player) => {
+    return player.icon === local["default_player"]
+  })
+
   return (
     <Menu
       id={1}
       animation="scale"
       theme={colorMode() !== "dark" ? "light" : "dark"}
     >
+      <For each={myPlayers}>
+        {(player) => (
+          <Item
+            hidden={({ props }) => {
+              return props.type !== ObjType.VIDEO
+            }}
+            onClick={({ props }) => {
+              const href = convertURL(player.scheme, {
+                raw_url: "",
+                name: props.name,
+                d_url: rawLink(props, true),
+              })
+              window.open(href, "_self")
+            }}
+          >
+            <HStack spacing="$2">
+              <Image
+                m="0 auto"
+                boxSize="$7"
+                src={`${window.__dynamic_base__}/images/${player.icon}.webp`}
+              />
+              <Text>{player.name}</Text>
+            </HStack>
+          </Item>
+        )}
+      </For>
+
       <For each={["rename", "move", "copy", "delete"]}>
         {(name) => (
           <Item

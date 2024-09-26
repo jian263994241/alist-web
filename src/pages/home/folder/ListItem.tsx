@@ -3,7 +3,7 @@ import { Motion } from "@motionone/solid"
 import { useContextMenu } from "solid-contextmenu"
 import { batch, Show } from "solid-js"
 import { LinkWithPush } from "~/components"
-import { usePath, useRouter, useUtil } from "~/hooks"
+import { usePath, useRouter, useLink, useUtil } from "~/hooks"
 import {
   checkboxOpen,
   getMainColor,
@@ -13,13 +13,14 @@ import {
   selectIndex,
 } from "~/store"
 import { ObjType, StoreObj } from "~/types"
-import { bus, formatDate, getFileSize, hoverColor } from "~/utils"
+import { bus, formatDate, getFileSize, hoverColor, convertURL } from "~/utils"
 import { getIconByObj } from "~/utils/icon"
 import {
   ItemCheckbox,
   useOpenItemWithCheckbox,
   useSelectWithMouse,
 } from "./helper"
+import { players } from "../previews/video_box"
 
 export interface Col {
   name: OrderBy
@@ -44,6 +45,9 @@ export const ListItem = (props: { obj: StoreObj; index: number }) => {
   const { isMouseSupported } = useSelectWithMouse()
   const isShouldOpenItem = useOpenItemWithCheckbox()
   const filenameStyle = () => local["list_item_filename_overflow"]
+
+  const { rawLink } = useLink()
+
   return (
     <Motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -79,6 +83,27 @@ export const ListItem = (props: { obj: StoreObj; index: number }) => {
           to(pushHref(props.obj.name))
         }}
         on:click={(e: MouseEvent) => {
+          if (
+            props.obj.type === ObjType.VIDEO &&
+            local["default_player"] !== "disabled"
+          ) {
+            const player = players.find(
+              (item) => item.icon === local["default_player"],
+            )
+
+            if (player) {
+              const href = convertURL(player.scheme, {
+                raw_url: "",
+                name: props.obj.name,
+                d_url: rawLink(props.obj, true),
+              })
+
+              console.log(href)
+
+              window.open(href, "_self")
+              return e.preventDefault()
+            }
+          }
           if (isMouseSupported()) return e.preventDefault()
           if (!checkboxOpen()) return
           e.preventDefault()

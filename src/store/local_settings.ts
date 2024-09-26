@@ -1,5 +1,8 @@
 import { createLocalStorage } from "@solid-primitives/storage"
 import { isMobile } from "~/utils/compatibility"
+import { players } from "~/pages/home/previews/video_box"
+
+const playerNames = players.map((item) => item.icon)
 
 const [local, setLocal, { remove, clear, toJSON }] = createLocalStorage()
 // export function isValidKey(
@@ -68,6 +71,12 @@ export const initialLocalSettings = [
     type: "select",
     options: ["disabled", "open_item_with_dblclick"],
     hidden: isMobile,
+  },
+  {
+    key: "default_player",
+    default: "disabled",
+    type: "select",
+    options: ["disabled"].concat(playerNames),
   },
 ]
 export type LocalSetting = (typeof initialLocalSettings)[number]
